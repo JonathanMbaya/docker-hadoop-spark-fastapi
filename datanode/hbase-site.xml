@@ -1,0 +1,10 @@
+<configuration>
+    <property>
+        <name>hbase.zookeeper.quorum</name>
+        <value>namenode</value>
+    </property>
+    <property>
+        <name>hbase.rootdir</name>
+        <value>hdfs://namenode:9000/hbase</value>
+    </property>
+</configuration>

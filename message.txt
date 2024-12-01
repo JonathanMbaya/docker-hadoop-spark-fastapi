@@ -1,0 +1,157 @@
+```services:
+  namenode:
+    build:
+      context: ./namenode
+    container_name: namenode
+    hostname: namenode
+    ports:
+      - "9870:9870"  # Hadoop NameNode Web UI
+      - "8088:8088"  # Hadoop ResourceManager Web UI
+    volumes:
+      - namenode_data:/hadoopdata
+    environment:
+      - HDFS_NAMENODE_USER=root
+      - HDFS_DATANODE_USER=root
+      - HDFS_SECONDARYNAMENODE_USER=root
+      - YARN_RESOURCEMANAGER_USER=root
+      - YARN_NODEMANAGER_USER=root
+    entrypoint: ["/entrypoint.sh"]
+    networks:
+      - hadoop-net
+
+  datanode1:
+    build:
+      context: ./datanode
+    container_name: datanode1
+    hostname: datanode1
+    depends_on:
+      - namenode
+    volumes:
+      - datanode1_data:/hadoopdata
+    environment:
+      - HDFS_NAMENODE_USER=root
+      - HDFS_DATANODE_USER=root
+      - HDFS_SECONDARYNAMENODE_USER=root
+      - YARN_RESOURCEMANAGER_USER=root
+      - YARN_NODEMANAGER_USER=root
+    entrypoint: ["/entrypoint.sh"]
+    networks:
+      - hadoop-net
+
+  datanode2:
+    build:
+      context: ./datanode
+    container_name: datanode2
+    hostname: datanode2
+    depends_on:
+      - namenode
+    volumes:
+      - datanode2_data:/hadoopdata
+    environment:
+      - HDFS_NAMENODE_USER=root
+      - HDFS_DATANODE_USER=root
+      - HDFS_SECONDARYNAMENODE_USER=root
+      - YARN_RESOURCEMANAGER_USER=root
+      - YARN_NODEMANAGER_USER=root
+    entrypoint: ["/entrypoint.sh"]
+    networks:
+      - hadoop-net
+
+  spark:
+    build:
+      context: ./spark
+    container_name: spark-master
+    hostname: spark-master
+    depends_on:
+      - namenode
+      - datanode1
+      - datanode2
+      - elasticsearch
+    ports:
+      - "8080:8080"  # Spark Master Web UI
+      - "7077:7077"  # Spark Master Port
+    environment:
+      - SPARK_MASTER_HOST=0.0.0.0
+      - SPARK_HOME=/opt/spark
+      - HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+    volumes:
+      - ./spark/app:/app 
+      - spark_data:/spark
+    entrypoint: ["/entrypoint.sh"]
+    networks:
+      - hadoop-net
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    networks:
+      - hadoop-net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.10.1
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5601:5601"
+    networks:
+      - hadoop-net
+  
+  # Service PostgreSQL
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hadoop-net
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - hadoop-net
+
+  fastapi:
+    build:
+      context: ./api
+    container_name: fastapi
+    depends_on:
+      - elasticsearch
+    ports:
+      - "8000:8000"
+    environment:
+      - ELASTICSEARCH_HOST=http://elasticsearch:9200
+    volumes:
+      - ./api/app:/app
+    networks:
+      - hadoop-net
+
+volumes:
+  namenode_data:
+  datanode1_data:
+  datanode2_data:
+  spark_data:
+  postgres_data:
+
+networks:
+  hadoop-net:
+```
