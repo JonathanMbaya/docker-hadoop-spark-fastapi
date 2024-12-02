@@ -1,0 +1,9 @@
+fastapi[all]
+uvicorn
+sqlalchemy
+psycopg2-binary
+python-dotenv
+asyncpg
+alembic
+motor
+bson

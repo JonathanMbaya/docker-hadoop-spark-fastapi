@@ -128,18 +128,43 @@ services:
       - hadoop-net
 
   web:
-    build: .
+    build:
+      context: ./backmeteo
+      dockerfile: Dockerfile
     container_name: fastapi-container
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
-      - ./app:/app
+      - ./backmeteo:/app
     ports:
       - "8000:8000"  # Exposer FastAPI sur le port 8000
     depends_on:
       - postgres
     environment:
       DATABASE_URL: "postgresql://myuser:mypassword_eee@postgres-container/mydatabase"
-      PYTHONPATH: "/app"  # Ajout du PYTHONPATH
+    networks:
+      - hadoop-net
+
+  app:
+    build: ./backmeteo
+    volumes:
+      - ./backmeteo:/app
+    ports:
+      - "8001:8001"
+    environment:
+      - MONGO_URI=mongodb://rootuser:rootpass@mongo:27017/?authSource=admin
+    depends_on:
+      - mongo
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: rootuser
+      MONGO_INITDB_ROOT_PASSWORD: rootpass
+    volumes:
+      - mongo-data:/data/db
     networks:
       - hadoop-net
 
@@ -149,6 +174,8 @@ volumes:
   datanode2_data:
   spark_data:
   postgres_data:
+  mongo-data:
 
 networks:
   hadoop-net:
+    driver: bridge

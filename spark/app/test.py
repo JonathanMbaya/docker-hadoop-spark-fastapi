@@ -7,8 +7,8 @@ def main():
         .getOrCreate()
 
     # Chargez le fichier CSV
-    inputfile = 'testdata.csv'
-    outputpath = 'output'
+    inputfile = './testdata.csv'
+    outputpath = '/output/'
 
     df = spark.read.option('header', 'true').csv(inputfile)
 
