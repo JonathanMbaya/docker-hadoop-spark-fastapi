@@ -8,6 +8,7 @@ services:
       - "9870:9870"  # Hadoop NameNode Web UI
       - "8088:8088"  # Hadoop ResourceManager Web UI
     volumes:
+      - ./spark/app/data/processed_gsod:/app/data/processed_gsod
       - namenode_data:/hadoopdata
     environment:
       - HDFS_NAMENODE_USER=root
@@ -27,6 +28,7 @@ services:
     depends_on:
       - namenode
     volumes:
+      - ./spark/app/data/processed_gsod:/app/data/processed_gsod
       - datanode1_data:/hadoopdata
     environment:
       - HDFS_NAMENODE_USER=root
@@ -46,6 +48,7 @@ services:
     depends_on:
       - namenode
     volumes:
+      - ./spark/app/data/processed_gsod:/app/data/processed_gsod
       - datanode2_data:/hadoopdata
     environment:
       - HDFS_NAMENODE_USER=root
@@ -139,22 +142,11 @@ services:
       - "8000:8000"  # Exposer FastAPI sur le port 8000
     depends_on:
       - postgres
+      - mongo
     environment:
-      DATABASE_URL: "postgresql://myuser:mypassword_eee@postgres-container/mydatabase"
+      DATABASE_URL: "MONGO_URI=mongodb://rootuser:rootpass@mongo:27017/?authSource=admin"
     networks:
       - hadoop-net
-
-  app:
-    build: ./backmeteo
-    volumes:
-      - ./backmeteo:/app
-    ports:
-      - "8001:8001"
-    environment:
-      - MONGO_URI=mongodb://rootuser:rootpass@mongo:27017/?authSource=admin
-    depends_on:
-      - mongo
-    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 
   mongo:
     image: mongo:latest

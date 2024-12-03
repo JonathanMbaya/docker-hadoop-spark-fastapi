@@ -15,7 +15,7 @@ def insert_csv_files_to_hdfs():
         df = spark.read.csv(local_csv_directory, header=True, inferSchema=True)
 
         # Chemin cible dans HDFS pour sauvegarder les fichiers CSV
-        hdfs_target_path = "hdfs://namenode:9000/gsod/"
+        hdfs_target_path = "http://localhost:9870/gsod/"
 
         # Écrire les données dans HDFS
         df.write.csv(hdfs_target_path, header=True, mode="overwrite")  # 'mode="overwrite"' pour écraser les fichiers existants

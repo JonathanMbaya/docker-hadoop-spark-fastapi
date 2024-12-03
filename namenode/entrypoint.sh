@@ -17,19 +17,30 @@ if [ ! -d "/hadoopdata/hdfs/namenode/current" ]; then
     $HADOOP_HOME/bin/hdfs namenode -format -force
 fi
 
+# Démarrer les services Hadoop
 echo "Démarrage du NameNode..."
 $HADOOP_HOME/bin/hdfs --daemon start namenode
 
-# Démarrer le SecondaryNameNode
 echo "Démarrage du SecondaryNameNode..."
 $HADOOP_HOME/bin/hdfs --daemon start secondarynamenode
 
-# Démarrer YARN (ResourceManager)
 echo "Démarrage du ResourceManager..."
 $HADOOP_HOME/bin/yarn --daemon start resourcemanager
 
+# Attendre que le NameNode soit actif avant de continuer
+echo "Attente que le NameNode soit prêt..."
+until $HADOOP_HOME/bin/hdfs dfs -ls / >/dev/null 2>&1; do
+    echo "Le NameNode n'est pas prêt, nouvelle tentative dans 5 secondes..."
+    sleep 5
+done
 
-# Vérifier les processus Java (debug)
+# Configuration HDFS : création des répertoires et configuration des permissions
+echo "Configuration des répertoires HDFS..."
+$HADOOP_HOME/bin/hdfs dfs -mkdir -p /gsod
+$HADOOP_HOME/bin/hdfs dfs -chmod -R 777 /gsod
+echo "Répertoire /gsod créé avec succès et permissions définies."
+
+# Vérifier les processus Hadoop
 echo "Processus Hadoop démarrés :"
 jps
 

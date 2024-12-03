@@ -35,9 +35,10 @@ def concat_csv_files_from_folder(folder_path):
     return combined_df
 
 # Fonction de traitement des données (exemple ici : nettoyage des colonnes)
-def process_data(df):
+
+def process_data(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Traite et nettoie la DataFrame. Exemple de traitement : suppression des colonnes inutiles et renaming.
+    Traite et nettoie la DataFrame. Exemple de traitement : suppression des colonnes inutiles, renaming, et gestion des valeurs manquantes.
     :param df: La DataFrame à traiter
     :return: La DataFrame traitée
     """
@@ -48,13 +49,22 @@ def process_data(df):
         df = df[columns_to_keep]
     else:
         print(f"Certaines colonnes sont manquantes dans les données. Colonnes disponibles : {df.columns}")
-
+    
     # Renommer les colonnes pour correspondre à un format plus lisible
     df.columns = ["station", "date", "temp", "dew_point", "wind_speed", "precipitation"]
     
-    # Supprimer les lignes avec des valeurs manquantes
-    df = df.dropna()
+    # Remplir les valeurs manquantes par 0.0 pour les colonnes numériques
+    df = df.fillna({
+        'temp': 0.0,         # Remplacer les NaN dans temp par 0.0
+        'dew_point': 0.0,    # Remplacer les NaN dans dew_point par 0.0
+        'wind_speed': 0.0,   # Remplacer les NaN dans wind_speed par 0.0
+        'precipitation': 0.0 # Remplacer les NaN dans precipitation par 0.0
+    })
     
+    # Vous pouvez également remplir d'autres colonnes si nécessaire de la même manière.
+
+    # Optionnel: Si vous souhaitez supprimer les lignes avec des valeurs nulles dans d'autres colonnes non mentionnées
+    df = df.dropna()  # Cela supprimera toute ligne contenant des NaN dans des colonnes non spécifiées
     return df
 
 # Fonction pour sauvegarder la DataFrame traitée en CSV

@@ -4,11 +4,12 @@ def main():
     # Créez une session Spark
     spark = SparkSession.builder \
         .appName('Test Spark Submit') \
+        .config("spark.hadoop.fs.defaultFS", "http://localhost:9870")\
         .getOrCreate()
 
     # Chargez le fichier CSV
-    inputfile = './testdata.csv'
-    outputpath = '/output/'
+    inputfile = 'testdata.csv'
+    outputpath = '/gsod'
 
     df = spark.read.option('header', 'true').csv(inputfile)
 

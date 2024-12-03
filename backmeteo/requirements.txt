@@ -6,4 +6,4 @@ python-dotenv
 asyncpg
 alembic
 motor
-bson
+pymongo
